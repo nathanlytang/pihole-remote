@@ -73,9 +73,9 @@ export default function App() {
         const url = tabs[0]?.url;
         if (url) {
           try {
-            const hostname = new URL(url).hostname;
-            if (hostname && !hostname.startsWith('chrome') && !hostname.startsWith('about')) {
-              setCurrentDomain(hostname);
+            const parsed = new URL(url);
+            if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname) {
+              setCurrentDomain(parsed.hostname);
             }
           } catch { /* ignore invalid URLs */ }
         }
