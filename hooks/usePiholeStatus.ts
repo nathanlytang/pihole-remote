@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { PiholeConfig, PiholeSession, BlockingStatus, StatsSummary } from '@/lib/types';
 import { authenticate, getBlockingStatus, getStatsSummary, setBlocking as apiSetBlocking } from '@/lib/api';
+import { hasHostPermission } from '@/lib/permissions';
 
 const POLL_INTERVAL = 10_000;
 
@@ -27,6 +28,13 @@ export function usePiholeStatus(config: PiholeConfig | null) {
 
     setLoading(true);
     setError(null);
+
+    const permitted = await hasHostPermission(config.address);
+    if (!permitted) {
+      setError('Host permission not granted. Please re-save settings in the options page.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const session = await ensureSession();

@@ -7,7 +7,7 @@ export default defineConfig({
     name: 'Pi-hole Remote',
     description: 'Control your Pi-hole(s) from your browser',
     permissions: ['storage'],
-    host_permissions: ['<all_urls>'],
+    optional_host_permissions: ['<all_urls>'],
     icons: {
       '16': 'icon/16.png',
       '48': 'icon/48.png',

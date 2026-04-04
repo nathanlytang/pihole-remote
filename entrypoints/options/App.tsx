@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useStorage } from '@/hooks/useStorage';
 import { useTheme } from '@/hooks/useTheme';
 import { testConnection } from '@/lib/api';
+import { requestHostPermission } from '@/lib/permissions';
 import type { PiholeConfig, Theme, VersionInfo } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,6 +69,18 @@ export default function App() {
     const form = forms[index];
     if (!form.config.address || !form.config.apiKey) return;
 
+    const granted = await requestHostPermission(form.config.address);
+    if (!granted) {
+      setForms((prev) =>
+        prev.map((f, i) =>
+          i === index
+            ? { ...f, testResult: { status: 'error', error: 'Host permission denied. Please allow access to connect.' } }
+            : f
+        )
+      );
+      return;
+    }
+
     setForms((prev) =>
       prev.map((f, i) =>
         i === index ? { ...f, testResult: { status: 'testing' } } : f
@@ -96,6 +109,16 @@ export default function App() {
       const configs = forms
         .map((f) => f.config)
         .filter((c) => c.address && c.apiKey);
+      // Ensure host permissions are granted for all configured Pi-holes
+      for (const config of configs) {
+        const granted = await requestHostPermission(config.address);
+        if (!granted) {
+          toast.error(`Permission denied for ${config.address}`, {
+            description: 'Please allow access to connect to this Pi-hole.',
+          });
+          return;
+        }
+      }
       await savePiholes(configs);
       toast.success('Settings saved successfully');
     } catch (err) {
