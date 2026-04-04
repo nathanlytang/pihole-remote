@@ -4,12 +4,11 @@ A cross-browser extension (Chrome MV3 + Firefox MV2) to control Pi-hole v6 insta
 
 ## Features
 
-- **Multi Pi-hole support** — manage up to 2 Pi-holes simultaneously
+- **Multi Pi-hole support** — manage up to 2 Pi-hole instances simultaneously
 - **Enable/Disable toggle** — with optional timer (auto-reenable after N seconds)
 - **Domain control** — add domains to allowlist or blocklist
 - **Statistics** — total queries, blocked queries, and block percentage
 - **Cross-browser** — builds for Chrome (MV3) and Firefox (MV2)
-- **Pi-hole v6 API** — uses the modern v6 API
 
 ## Getting Started
 
