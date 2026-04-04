@@ -55,6 +55,44 @@ export interface TimerSetting {
   customSeconds: number;
 }
 
+export interface DomainMatch {
+  domain: string;
+  type: 'allow' | 'deny';
+  kind: 'exact' | 'regex';
+  comment: string | null;
+  enabled: boolean;
+  id: number;
+  groups: number[];
+}
+
+export interface GravityMatch {
+  domain: string;
+  address: string;
+  type: 'allow' | 'block';
+  comment: string | null;
+  enabled: boolean;
+  id: number;
+  groups: number[];
+}
+
+export interface DomainSearchResult {
+  search: {
+    domains: DomainMatch[];
+    gravity: GravityMatch[];
+    parameters: {
+      domain: string;
+      N: number;
+      partial: boolean;
+      debug: boolean;
+    };
+    results: {
+      domains: { exact: number; regex: number };
+      gravity: { allow: number; block: number };
+      total: number;
+    };
+  };
+}
+
 export interface StorageData {
   piholes: PiholeConfig[];
   theme: Theme;

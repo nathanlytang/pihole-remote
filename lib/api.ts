@@ -1,4 +1,4 @@
-import type { PiholeSession, BlockingStatus, StatsSummary, VersionInfo } from './types';
+import type { PiholeSession, BlockingStatus, StatsSummary, VersionInfo, DomainSearchResult } from './types';
 
 function buildUrl(address: string, path: string): string {
   const base = address.replace(/\/+$/, '');
@@ -145,5 +145,64 @@ export async function testConnection(
       success: false,
       error: err instanceof Error ? err.message : 'Connection failed',
     };
+  }
+}
+
+export async function searchDomain(
+  address: string,
+  session: PiholeSession,
+  domain: string
+): Promise<DomainSearchResult> {
+  const res = await fetch(buildUrl(address, `/search/${encodeURIComponent(domain)}`), {
+    headers: authHeaders(session),
+  });
+
+  if (!res.ok) {
+    throw new Error(`Failed to search domain (${res.status})`);
+  }
+
+  return await res.json();
+}
+
+export async function addDomain(
+  address: string,
+  session: PiholeSession,
+  domain: string,
+  type: 'allow' | 'deny'
+): Promise<void> {
+  const res = await fetch(buildUrl(address, `/domains/${type}/exact`), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(session),
+    },
+    body: JSON.stringify({ domain }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(
+      data?.error?.message || `Failed to add domain to ${type} list (${res.status})`
+    );
+  }
+}
+
+export async function removeDomain(
+  address: string,
+  session: PiholeSession,
+  domain: string,
+  type: 'allow' | 'deny',
+  kind: 'exact' | 'regex' = 'exact'
+): Promise<void> {
+  const res = await fetch(
+    buildUrl(address, `/domains/${type}/${kind}/${encodeURIComponent(domain)}`),
+    {
+      method: 'DELETE',
+      headers: authHeaders(session),
+    }
+  );
+
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`Failed to remove domain from ${type} list (${res.status})`);
   }
 }

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStorage } from '@/hooks/useStorage';
 import { useTheme } from '@/hooks/useTheme';
 import { usePiholeStatus } from '@/hooks/usePiholeStatus';
-import type { PiholeConfig, TimerSetting } from '@/lib/types';
+import type { PiholeConfig, PiholeSession, TimerSetting } from '@/lib/types';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -21,12 +21,14 @@ function PiholePanelWrapper({
   onTimerSettingChange,
   onStatusChange,
   onControlsRef,
+  domain,
 }: {
   config: PiholeConfig;
   timerSetting: TimerSetting;
   onTimerSettingChange: (setting: TimerSetting) => void;
   onStatusChange: (enabled: boolean) => void;
   onControlsRef: (controls: PanelControls) => void;
+  domain: string | null;
 }) {
   const status = usePiholeStatus(config);
   const isEnabled = status.blocking?.blocking === 'enabled';
@@ -51,6 +53,9 @@ function PiholePanelWrapper({
       onTimerSettingChange={onTimerSettingChange}
       refresh={status.refresh}
       toggleBlocking={status.toggleBlocking}
+      address={config.address}
+      domain={domain}
+      ensureSession={status.ensureSession}
     />
   );
 }
@@ -59,6 +64,23 @@ export default function App() {
   const { piholes, theme, timerSetting, loading, savePiholes, saveTheme, saveTimerSetting } = useStorage();
   useTheme(theme);
   const [activeTab, setActiveTab] = useState('0');
+  const [currentDomain, setCurrentDomain] = useState<string | null>(null);
+
+  useEffect(() => {
+    browser.tabs
+      .query({ active: true, currentWindow: true })
+      .then((tabs) => {
+        const url = tabs[0]?.url;
+        if (url) {
+          try {
+            const hostname = new URL(url).hostname;
+            if (hostname && !hostname.startsWith('chrome') && !hostname.startsWith('about')) {
+              setCurrentDomain(hostname);
+            }
+          } catch { /* ignore invalid URLs */ }
+        }
+      });
+  }, []);
   const [statuses, setStatuses] = useState<Record<string, boolean>>({});
   const [togglingAll, setTogglingAll] = useState(false);
   const controlsRefs = useRef<Record<number, PanelControls>>({});
@@ -168,6 +190,7 @@ export default function App() {
               onTimerSettingChange={saveTimerSetting}
               onStatusChange={handleStatusChange(i)}
               onControlsRef={handleControlsRef(i)}
+              domain={currentDomain}
             />
           </div>
         ))}

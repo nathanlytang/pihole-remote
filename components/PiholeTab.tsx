@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import type { BlockingStatus, StatsSummary, TimerPreset, TimerSetting } from '@/lib/types';
+import type { BlockingStatus, StatsSummary, TimerPreset, TimerSetting, PiholeSession } from '@/lib/types';
+import { DomainControl } from '@/components/DomainControl';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Loader2, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 
 const PRESETS: { value: TimerPreset; label: string }[] = [
   { value: 0, label: '∞' },
@@ -25,6 +26,9 @@ interface PiholeTabProps {
   onTimerSettingChange: (setting: TimerSetting) => void;
   refresh: () => void;
   toggleBlocking: (enabled: boolean, timer?: number) => Promise<void>;
+  address: string;
+  domain: string | null;
+  ensureSession: () => Promise<PiholeSession>;
 }
 
 function formatCountdown(seconds: number): string {
@@ -37,7 +41,7 @@ function formatCountdown(seconds: number): string {
   return `${s}s`;
 }
 
-export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTimerSettingChange, refresh, toggleBlocking }: PiholeTabProps) {
+export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTimerSettingChange, refresh, toggleBlocking, address, domain, ensureSession }: PiholeTabProps) {
   const isEnabled = blocking?.blocking === 'enabled';
   const hasData = blocking !== null;
 
@@ -179,6 +183,15 @@ export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTim
         </CardContent>
       </Card>
 
+      {/* Domain Control */}
+      {domain && (
+        <DomainControl
+          address={address}
+          domain={domain}
+          ensureSession={ensureSession}
+        />
+      )}
+
       {/* Stats */}
       {stats && (
         <Card>
@@ -189,7 +202,7 @@ export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTim
                 <p className="text-xs text-muted-foreground">Total Queries</p>
               </div>
               <div>
-                <p className="text-lg font-bold text-red-500">
+                <p className="text-lg font-bold">
                   {stats.queries.blocked.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground">Blocked</p>
@@ -205,8 +218,11 @@ export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTim
         </Card>
       )}
 
-      {/* Refresh */}
-      <div className="flex justify-end">
+      {/* Refresh & Open */}
+      <div className="flex justify-between items-center">
+        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => window.open(address, '_blank')} title="Open Pi-hole admin">
+          <ExternalLink className="h-3.5 w-3.5" />
+        </Button>
         <Button variant="ghost" size="sm" onClick={refresh} disabled={loading}>
           <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
           Refresh

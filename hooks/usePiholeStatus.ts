@@ -96,5 +96,5 @@ export function usePiholeStatus(config: PiholeConfig | null) {
     };
   }, [config?.address, config?.apiKey, refresh]);
 
-  return { blocking, stats, loading, error, refresh, toggleBlocking };
+  return { blocking, stats, loading, error, refresh, toggleBlocking, ensureSession };
 }

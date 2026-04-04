@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PiholeLogo } from '@/components/PiholeLogo';
-import { Plus, Trash2, CheckCircle, XCircle, Loader2, Sun, Moon, Monitor } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, XCircle, Loader2, Sun, Moon, Monitor, Eye, EyeOff } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 
 interface PiholeFormState {
@@ -28,6 +28,7 @@ export default function App() {
   const [forms, setForms] = useState<PiholeFormState[]>([]);
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showApiKey, setShowApiKey] = useState<Record<number, boolean>>({});
 
   // Initialize forms from storage once loaded
   if (!loading && !initialized) {
@@ -159,12 +160,24 @@ export default function App() {
               </div>
               <div>
                 <label className="text-sm font-medium">API Key</label>
-                <Input
-                  type="password"
-                  placeholder="Your Pi-hole password"
-                  value={form.config.apiKey}
-                  onChange={(e) => updateForm(index, { apiKey: e.target.value })}
-                />
+                <div className="flex items-center gap-1">
+                  <Input
+                    type={showApiKey[index] ? 'text' : 'password'}
+                    placeholder="Your Pi-hole password"
+                    value={form.config.apiKey}
+                    onChange={(e) => updateForm(index, { apiKey: e.target.value })}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0"
+                    onClick={() => setShowApiKey((prev) => ({ ...prev, [index]: !prev[index] }))}
+                    title={showApiKey[index] ? 'Hide API key' : 'Show API key'}
+                    type="button"
+                  >
+                    {showApiKey[index] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
 
               <div className="flex items-center gap-2">
