@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import type { BlockingStatus, StatsSummary, TimerPreset, TimerSetting } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -26,9 +27,50 @@ interface PiholeTabProps {
   toggleBlocking: (enabled: boolean, timer?: number) => Promise<void>;
 }
 
+function formatCountdown(seconds: number): string {
+  if (seconds <= 0) return '0s';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
 export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTimerSettingChange, refresh, toggleBlocking }: PiholeTabProps) {
   const isEnabled = blocking?.blocking === 'enabled';
   const hasData = blocking !== null;
+
+  const [countdown, setCountdown] = useState<number | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+
+    if (!isEnabled && blocking?.timer != null && blocking.timer > 0) {
+      setCountdown(Math.round(blocking.timer));
+      countdownRef.current = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+            countdownRef.current = null;
+            refresh();
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      setCountdown(null);
+    }
+
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [blocking?.timer, isEnabled, refresh]);
 
   const activePreset = timerSetting.customSeconds > 0 ? 'custom' : timerSetting.preset;
 
@@ -86,9 +128,9 @@ export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTim
               <Badge variant={isEnabled ? 'success' : 'danger'}>
                 {isEnabled ? 'Enabled' : 'Disabled'}
               </Badge>
-              {blocking?.timer != null && (
+              {countdown != null && countdown > 0 && (
                 <span className="text-xs text-muted-foreground">
-                  {Math.round(blocking.timer)}s remaining
+                  {formatCountdown(countdown)} remaining
                 </span>
               )}
             </div>
