@@ -1,4 +1,4 @@
-# Pi-hole Remote
+<h1>Pi-hole Remote <img src="public/icon/48.png" alt="" width="32" height="32" align="center"></h1>
 
 A cross-browser extension (Chrome MV3 + Firefox MV2) to control Pi-hole v6 instances from your browser.
 
