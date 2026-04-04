@@ -11,6 +11,8 @@
     "zip": "wxt zip",
     "zip:firefox": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
+    "release": "tsc --noEmit && wxt zip",
+    "release:firefox": "tsc --noEmit && wxt zip -b firefox",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
