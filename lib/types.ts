@@ -46,6 +46,9 @@ export interface PiholeState {
   error: string | null;
 }
 
+export type Theme = 'light' | 'dark' | 'system';
+
 export interface StorageData {
   piholes: PiholeConfig[];
+  theme: Theme;
 }

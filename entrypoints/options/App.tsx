@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useStorage } from '@/hooks/useStorage';
+import { useTheme } from '@/hooks/useTheme';
 import { testConnection } from '@/lib/api';
-import type { PiholeConfig, VersionInfo } from '@/lib/types';
+import type { PiholeConfig, Theme, VersionInfo } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PiholeLogo } from '@/components/PiholeLogo';
-import { Plus, Trash2, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, XCircle, Loader2, Sun, Moon, Monitor } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 
 interface PiholeFormState {
@@ -22,7 +23,8 @@ interface PiholeFormState {
 const emptyConfig: PiholeConfig = { name: '', address: '', apiKey: '' };
 
 export default function App() {
-  const { piholes, loading, savePiholes } = useStorage();
+  const { piholes, theme, loading, savePiholes, saveTheme } = useStorage();
+  useTheme(theme);
   const [forms, setForms] = useState<PiholeFormState[]>([]);
   const [initialized, setInitialized] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -230,6 +232,29 @@ export default function App() {
           Save Settings
         </Button>
       </div>
+
+      <Card className="mt-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Appearance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            {(['light', 'dark', 'system'] as Theme[]).map((t) => (
+              <Button
+                key={t}
+                variant={theme === t ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => saveTheme(t)}
+              >
+                {t === 'light' && <Sun className="h-4 w-4 mr-1.5" />}
+                {t === 'dark' && <Moon className="h-4 w-4 mr-1.5" />}
+                {t === 'system' && <Monitor className="h-4 w-4 mr-1.5" />}
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

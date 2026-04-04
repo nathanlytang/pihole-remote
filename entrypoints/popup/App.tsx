@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStorage } from '@/hooks/useStorage';
+import { useTheme } from '@/hooks/useTheme';
 import { usePiholeStatus } from '@/hooks/usePiholeStatus';
 import type { PiholeConfig } from '@/lib/types';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -49,7 +50,8 @@ function PiholePanelWrapper({
 }
 
 export default function App() {
-  const { piholes, loading } = useStorage();
+  const { piholes, theme, loading } = useStorage();
+  useTheme(theme);
   const [activeTab, setActiveTab] = useState('0');
   const [statuses, setStatuses] = useState<Record<string, boolean>>({});
   const [togglingAll, setTogglingAll] = useState(false);
