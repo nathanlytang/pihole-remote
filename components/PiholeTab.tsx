@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import type { BlockingStatus, StatsSummary } from '@/lib/types';
+import type { BlockingStatus, StatsSummary, TimerPreset, TimerSetting } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
@@ -7,23 +6,54 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Loader2, RefreshCw, AlertCircle } from 'lucide-react';
 
+const PRESETS: { value: TimerPreset; label: string }[] = [
+  { value: 0, label: '∞' },
+  { value: 10, label: '10s' },
+  { value: 60, label: '1m' },
+  { value: 600, label: '10m' },
+  { value: 3600, label: '1h' },
+  { value: 'custom', label: 'Custom' },
+];
+
 interface PiholeTabProps {
   blocking: BlockingStatus | null;
   stats: StatsSummary | null;
   loading: boolean;
   error: string | null;
+  timerSetting: TimerSetting;
+  onTimerSettingChange: (setting: TimerSetting) => void;
   refresh: () => void;
   toggleBlocking: (enabled: boolean, timer?: number) => Promise<void>;
 }
 
-export function PiholeTab({ blocking, stats, loading, error, refresh, toggleBlocking }: PiholeTabProps) {
-  const [timer, setTimer] = useState(0);
-
+export function PiholeTab({ blocking, stats, loading, error, timerSetting, onTimerSettingChange, refresh, toggleBlocking }: PiholeTabProps) {
   const isEnabled = blocking?.blocking === 'enabled';
   const hasData = blocking !== null;
 
+  const activePreset = timerSetting.customSeconds > 0 ? 'custom' : timerSetting.preset;
+
+  const getTimerSeconds = (): number => {
+    if (activePreset === 'custom') return timerSetting.customSeconds;
+    if (typeof timerSetting.preset === 'number') return timerSetting.preset;
+    return 0;
+  };
+
   const handleToggle = async (enabled: boolean) => {
-    await toggleBlocking(enabled, timer > 0 ? timer : undefined);
+    const seconds = getTimerSeconds();
+    await toggleBlocking(enabled, seconds > 0 ? seconds : undefined);
+  };
+
+  const handlePresetClick = (preset: TimerPreset) => {
+    if (preset === 'custom') {
+      onTimerSettingChange({ preset: 'custom', customSeconds: timerSetting.customSeconds || 30 });
+    } else {
+      onTimerSettingChange({ preset, customSeconds: 0 });
+    }
+  };
+
+  const handleCustomChange = (value: string) => {
+    const seconds = Math.max(0, parseInt(value) || 0);
+    onTimerSettingChange({ preset: 'custom', customSeconds: seconds });
   };
 
   if (error && !hasData) {
@@ -74,23 +104,36 @@ export function PiholeTab({ blocking, stats, loading, error, refresh, toggleBloc
         </CardContent>
       </Card>
 
-      {/* Timer */}
+      {/* Timer Presets */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium shrink-0">Timer (s):</label>
-            <Input
-              type="number"
-              min={0}
-              value={timer}
-              onChange={(e) => setTimer(Math.max(0, parseInt(e.target.value) || 0))}
-              className="h-8 w-24"
-              placeholder="0"
-            />
-            <span className="text-xs text-muted-foreground">
-              {timer === 0 ? 'Permanent' : `Auto-reenable in ${timer}s`}
-            </span>
+        <CardContent className="p-4 space-y-2">
+          <label className="text-sm font-medium">Re-enable after:</label>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {PRESETS.map((p) => (
+              <Button
+                key={String(p.value)}
+                variant={activePreset === p.value ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 px-2.5 text-xs"
+                onClick={() => handlePresetClick(p.value)}
+              >
+                {p.label}
+              </Button>
+            ))}
           </div>
+          {activePreset === 'custom' && (
+            <div className="flex items-center gap-2 pt-1">
+              <Input
+                type="number"
+                min={1}
+                value={timerSetting.customSeconds || ''}
+                onChange={(e) => handleCustomChange(e.target.value)}
+                className="h-7 w-24 text-xs"
+                placeholder="seconds"
+              />
+              <span className="text-xs text-muted-foreground">seconds</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -48,7 +48,15 @@ export interface PiholeState {
 
 export type Theme = 'light' | 'dark' | 'system';
 
+export type TimerPreset = 0 | 10 | 60 | 600 | 3600 | 'custom';
+
+export interface TimerSetting {
+  preset: TimerPreset;
+  customSeconds: number;
+}
+
 export interface StorageData {
   piholes: PiholeConfig[];
   theme: Theme;
+  timerSetting: TimerSetting;
 }

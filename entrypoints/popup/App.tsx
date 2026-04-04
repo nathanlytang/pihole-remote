@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useStorage } from '@/hooks/useStorage';
 import { useTheme } from '@/hooks/useTheme';
 import { usePiholeStatus } from '@/hooks/usePiholeStatus';
-import type { PiholeConfig } from '@/lib/types';
+import type { PiholeConfig, TimerSetting } from '@/lib/types';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -17,10 +17,14 @@ interface PanelControls {
 
 function PiholePanelWrapper({
   config,
+  timerSetting,
+  onTimerSettingChange,
   onStatusChange,
   onControlsRef,
 }: {
   config: PiholeConfig;
+  timerSetting: TimerSetting;
+  onTimerSettingChange: (setting: TimerSetting) => void;
   onStatusChange: (enabled: boolean) => void;
   onControlsRef: (controls: PanelControls) => void;
 }) {
@@ -43,6 +47,8 @@ function PiholePanelWrapper({
       stats={status.stats}
       loading={status.loading}
       error={status.error}
+      timerSetting={timerSetting}
+      onTimerSettingChange={onTimerSettingChange}
       refresh={status.refresh}
       toggleBlocking={status.toggleBlocking}
     />
@@ -50,7 +56,7 @@ function PiholePanelWrapper({
 }
 
 export default function App() {
-  const { piholes, theme, loading } = useStorage();
+  const { piholes, theme, timerSetting, loading, savePiholes, saveTheme, saveTimerSetting } = useStorage();
   useTheme(theme);
   const [activeTab, setActiveTab] = useState('0');
   const [statuses, setStatuses] = useState<Record<string, boolean>>({});
@@ -80,11 +86,18 @@ export default function App() {
 
   const allEnabled = piholes.length > 0 && piholes.every((_, i) => statuses[i] !== false);
 
+  const getTimerSeconds = (): number => {
+    if (timerSetting.customSeconds > 0) return timerSetting.customSeconds;
+    if (typeof timerSetting.preset === 'number') return timerSetting.preset;
+    return 0;
+  };
+
   const handleDisableAll = async (enabled: boolean) => {
     setTogglingAll(true);
     try {
+      const seconds = getTimerSeconds();
       await Promise.all(
-        piholes.map((_, i) => controlsRefs.current[i]?.toggle(enabled))
+        piholes.map((_, i) => controlsRefs.current[i]?.toggle(enabled, seconds > 0 ? seconds : undefined))
       );
       // Refresh all panels to sync statuses
       piholes.forEach((_, i) => controlsRefs.current[i]?.refresh());
@@ -151,6 +164,8 @@ export default function App() {
           <div key={i} className={activeTab === String(i) ? '' : 'hidden'}>
             <PiholePanelWrapper
               config={ph}
+              timerSetting={timerSetting}
+              onTimerSettingChange={saveTimerSetting}
               onStatusChange={handleStatusChange(i)}
               onControlsRef={handleControlsRef(i)}
             />
