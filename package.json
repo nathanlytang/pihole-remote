@@ -1,0 +1,35 @@
+{
+  "name": "pihole-remote",
+  "description": "Pi-hole control from the browser",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^2.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@wxt-dev/module-react": "^1.1.5",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "wxt": "^0.20.20"
+  }
+}

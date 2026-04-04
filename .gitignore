@@ -137,3 +137,10 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# WXT
+.output
+.wxt
+stats.html
+stats-*.json
+web-ext.config.ts
