@@ -61,7 +61,7 @@ function PiholePanelWrapper({
 }
 
 export default function App() {
-  const { piholes, theme, timerSetting, loading, savePiholes, saveTheme, saveTimerSetting } = useStorage();
+  const { piholes, theme, timerSetting, loading, saveTimerSetting } = useStorage();
   useTheme(theme);
   const [activeTab, setActiveTab] = useState('0');
   const [currentDomain, setCurrentDomain] = useState<string | null>(null);
